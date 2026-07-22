@@ -499,3 +499,41 @@ dsv4pro-fp4-mi355x-ep16-mtp-sglang:
         # is an upstream NotImplementedError (crashes decode). See recipe.
         - conc-list: [1, 8, 16, 32, 64, 128]
           config_file: scripts/ci/slurm/recipes/mi355x-fp4/dsv4pro/1k1k/2p1d-ep16-mtp.yaml
+
+# Kimi-K2.6 (FP8, int4 wNa16 experts) wide-EP16, same 4-node 2P1D topology as the
+# DSV4 EP16 legs above (narrow-prefill EP8 x2 + wide-decode EP16 across 2 nodes,
+# mori MoE all-to-all + mori KV, runner mi355x). Decode runs EAGER
+# (--disable-cuda-graph): the int4 route-1 dense-compaction builds a data-dependent
+# shape a HIP graph cannot capture. Requires the deepep_normal<->triton MoE permute
+# + _is_hip route-1 guard (PR #32048) in the running image/source.
+kimik26-fp8-mi355x-ep16-sglang:
+  model: moonshotai/Kimi-K2.6
+  model-prefix: kimik26
+  model_path: /it-share/model_coverage/models--moonshotai--Kimi-K2.6
+  runner: mi355x
+  precision: fp8
+  framework: sglang
+  multinode: true
+  disagg: true
+  seq-len-configs:
+    - isl: 1024
+      osl: 1024
+      search-space:
+        - conc-list: [1, 8, 16, 32, 64, 128, 256]
+          config_file: scripts/ci/slurm/recipes/mi355x-fp8/kimik26/1k1k/2p1d-ep16.yaml
+
+kimik26-fp8-mi355x-ep16-mtp-sglang:
+  model: moonshotai/Kimi-K2.6
+  model-prefix: kimik26
+  model_path: /it-share/model_coverage/models--moonshotai--Kimi-K2.6
+  runner: mi355x
+  precision: fp8
+  framework: sglang
+  multinode: true
+  disagg: true
+  seq-len-configs:
+    - isl: 1024
+      osl: 1024
+      search-space:
+        - conc-list: [1, 8, 16, 32, 64, 128, 256]
+          config_file: scripts/ci/slurm/recipes/mi355x-fp8/kimik26/1k1k/2p1d-ep16-mtp.yaml
